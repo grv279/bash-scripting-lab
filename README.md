@@ -11,6 +11,16 @@ This guide serves as a quick reference and learning resource for Bash scripting.
   - [🧱 Introduction](#-introduction)
   - [🖇️ Bash shell inbuilt Variables](#️-bash-shell-inbuilt-variables)
     - [Exit Codes in Bash](#exit-codes-in-bash)
+  - [🐚 Bash Special Characters](#-bash-special-characters)
+    - [📄 Basics \& Execution](#-basics--execution)
+    - [🧮 Arithmetic \& Substitution](#-arithmetic--substitution)
+    - [🗂️ Globbing \& Wildcards](#️-globbing--wildcards)
+    - [🧠 Conditional \& Logical](#-conditional--logical)
+    - [🧪 Control Flow: `case` \& Tests](#-control-flow-case--tests)
+    - [⛓️ Redirection \& Pipes](#️-redirection--pipes)
+    - [🧵 Process \& Background](#-process--background)
+    - [🧭 Navigation \& Paths](#-navigation--paths)
+  - [🔠 String Manipulation](#-string-manipulation)
   - [📦 Bash Variables](#-bash-variables)
     - [Creating and Using Variables](#creating-and-using-variables)
       - [Escaping characters](#escaping-characters)
@@ -45,10 +55,20 @@ This guide serves as a quick reference and learning resource for Bash scripting.
   - [📂 File Tests](#-file-tests)
   - [🛠️ Useful Commands](#️-useful-commands)
   - [🔗 Pipelines](#-pipelines)
+    - [🔑 Key Points](#-key-points)
+    - [🔧 Practical Examples of Bash Pipelines](#-practical-examples-of-bash-pipelines)
+      - [🟢 Basic Example: List and Count Files](#-basic-example-list-and-count-files)
+      - [🔵 Filter Output with `grep`](#-filter-output-with-grep)
+      - [🟡 Sort and Remove Duplicates](#-sort-and-remove-duplicates)
+      - [🟠 Count Top Used Shells](#-count-top-used-shells)
+      - [🔴 Search Error Lines and Save to File](#-search-error-lines-and-save-to-file)
+      - [🟣 Handle Both Output and Errors](#-handle-both-output-and-errors)
+      - [⚫ Stream Processing: Live Monitoring with `tail`](#-stream-processing-live-monitoring-with-tail)
   - [🌀 Subshells](#-subshells)
   - [🧠⚙️ Job Control](#️-job-control)
   - [📎 License](#-license)
   - [🙌 Contributions Welcome!](#-contributions-welcome)
+
 
 ---
 
@@ -102,6 +122,354 @@ exit-code: 1
 $ bash -c 'exit 99'; printf 'exit-code: %d\n' "$?"
 exit-code: 99
 ```
+---
+
+## 🐚 Bash Special Characters
+
+### 📄 Basics & Execution
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `#`         | Comment        |
+
+
+```bash
+echo "Hello" # This is a comment
+```
+| Char(s)     | Description   |
+|-------------|----------------|
+| `:`         | No-op / placeholder   |
+
+```bash
+: > emptyfile
+: ${x:=42}  # Set default value if unset
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `#!`        | Shebang        |
+
+```bash
+#!/bin/bash
+echo "This is a bash script."
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `;`         | Command separator    |
+
+```bash
+echo "First"; echo "Second"
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `.`         | Source script / hidden file |
+
+```bash
+. ./myscript.sh
+# or
+source ~/.bashrc
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `\`        | Escape next character   |
+
+```bash
+echo \"Quoted\"
+echo \$HOME
+```
+
+
+### 🧮 Arithmetic & Substitution
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `` `cmd` `` | Command substitution  |
+
+```bash
+echo "Today is `date`"
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `$`         | Variable expansion  |
+
+```bash
+echo $HOME
+echo $$      # PID
+echo ${USER}
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `(( ))`     | Arithmetic evaluation  |
+
+```bash
+((count++))
+((sum=a+b))
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `+`         | Addition / alt expansion |
+
+```bash
+let x=1+2
+echo ${var:+set}  # Print "set" if var is set
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `%`         | Modulo / trim  |
+
+```bash
+echo $((10 % 3))     # 1
+file="report.txt"
+echo ${file%.txt}    # report
+```
+
+
+### 🗂️ Globbing & Wildcards
+
+In Bash (and most Unix shells), globbing refers to filename pattern matching using wildcards.
+It's how the shell automatically expands wildcard patterns like *, ?, or [abc] into matching filenames or paths.
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `*`         | Wildcard / multiply  |
+
+```bash
+echo *
+let x=2*3
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `**`        | Recursive glob / exponent |
+
+```bash
+# When globstar is enabled, you can use ** in path patterns to match directories recursively.
+shopt -s globstar 
+
+echo **/*.txt
+let x=2**3
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `?`         | Single-char wildcard / ternary / check |
+
+```bash
+ls file?
+echo $((a<10?1:0))
+echo ${v:?Value missing}  # try with v="hello" or 'unset v'
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `,`         | Multiple expressions / brace use  |
+
+```bash
+let x="(1 + 2, 3)"
+cp /{bin,usr/bin}/ls .
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `{}`        | Code block / brace expansion |
+
+```bash
+echo file{1,2}.txt
+{ echo "Hello"; echo "World"; } > output.txt
+```
+
+
+### 🧠 Conditional & Logical
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `[]`        | Test / char class  |
+
+```bash
+touch myfile.txt
+[ -f myfile.txt ] && echo "Exists"   # Exists
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `[[ ]]`     | Advanced test         |
+
+```bash
+[[ $filename == *.txt ]] && echo "Text file"
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `=~`        | Regex match in `[[ ]]` |
+
+```bash
+[[ $input =~ ^[0-9]+$ ]] && echo "Number"
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `!`         | Negate / indirect ref |
+
+```bash
+! false && echo "Not false"
+echo ${!varname}
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `&&`        | AND condition   |
+
+```bash
+make && echo "Build successful"
+```
+
+
+### 🧪 Control Flow: `case` & Tests
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `;;`        | End `case` block    |
+
+```bash
+case $var in
+  1) echo "One";;
+esac
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `;&`, `;;&` | `case` fall-through (Bash 4+) |
+
+```bash
+case $var in
+  2) echo "Two";;&
+  3) echo "Three";;
+esac
+```
+
+
+### ⛓️ Redirection & Pipes
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `>`         | Redirect to file  |
+
+```bash
+echo "Log entry" > logfile.txt
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `<`, `>`    | Input/output / compare |
+
+```bash
+[[ "$a" < "$b" ]] && echo "a is less"
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `<<`, `<<<` | Here-doc / Here-string   |
+
+```bash
+cat <<EOF
+Multiline text
+EOF
+
+grep root <<< "$line"
+```
+
+| Operator | Input Type        | Purpose                       |
+| -------- | ----------------- | ----------------------------- |
+| `<<`     | Multiline (stdin) | Simulate file input           |
+| `<<<`    | Single string     | Pass a short string via stdin |
+
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `|`         | Pipe command    |
+
+```bash
+ls | grep txt
+```
+
+
+
+### 🧵 Process & Background
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `&`         | Run in background  |
+
+```bash
+sleep 10 &
+echo "Sleeping in background"
+```
+
+### 🧭 Navigation & Paths
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `/`         | Path separator / divide |
+
+```bash
+cd /usr/bin
+expr 10 / 2
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `~`, `~+`, `~-` | Home / PWD / OLDPWD  |
+
+```bash
+cd ~
+echo ~+
+echo ~-
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `-`         | Options / stdin / prev dir  |
+
+```bash
+ls -l
+cat -
+cd -
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `--`        | End of options (literal) |
+
+```bash
+rm -- -weirdfile
+```
+
+## 🔠 String Manipulation
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `^^`, `^`   | Uppercase / start of line  |
+
+```bash
+echo ${var^^}
+[[ $name =~ ^John ]] && echo "Starts with John"
+```
+
+| Char(s)     | Description   |
+|-------------|----------------|
+| `,,`        | Lowercase      |
+
+```bash
+echo ${VAR,,}
+```
+
 
 ---
 
@@ -454,6 +822,79 @@ Allows you to reuse code or functions from another script.
 ---
 
 ## 🔗 Pipelines
+
+A Bash pipeline uses the pipe operator (`|`) to pass the **standard output** (`stdout`) of one command as the **standard input** (`stdin`) to another. This enables powerful data processing by chaining simple commands.
+
+### 🔑 Key Points
+
+- **Data Flow**: Output of one command becomes input for the next.
+- **Chaining**: Multiple commands can be linked in a single pipeline.
+- **Parallel Execution**: Commands run concurrently, streaming data.
+- **Streams**: Pipelines use `stdin` and `stdout` by default.
+- **Error Handling**: Use `|&` to include `stderr` (`2>&1 |`).
+- **Efficiency**: Avoids temp files by streaming data directly between commands.
+
+---
+
+### 🔧 Practical Examples of Bash Pipelines
+
+#### 🟢 Basic Example: List and Count Files
+```bash
+ls | wc -l
+```
+**What it does**:  
+- `ls` lists files  
+- `wc -l` counts the number of lines (i.e., files)
+
+
+#### 🔵 Filter Output with `grep`
+```bash
+ps aux | grep bash
+```
+**What it does**:  
+- `ps aux` lists running processes  
+- `grep bash` filters lines that include "bash"
+
+
+#### 🟡 Sort and Remove Duplicates
+```bash
+cat access.log | cut -d' ' -f1 | sort | uniq
+```
+**What it does**:  
+- Extracts IPs (first field) from a log file  
+- Sorts and filters out duplicate IP addresses
+
+#### 🟠 Count Top Used Shells
+```bash
+cat /etc/passwd | cut -d: -f7 | sort | uniq -c | sort -nr
+```
+**What it does**:  
+- Extracts login shells from `/etc/passwd`  
+- Counts and sorts them by frequency
+
+#### 🔴 Search Error Lines and Save to File
+```bash
+cat app.log | grep -i error | tee errors.txt
+```
+**What it does**:  
+- Finds error messages (case-insensitive)  
+- Displays them on screen **and** writes to `errors.txt`
+
+#### 🟣 Handle Both Output and Errors
+```bash
+find /etc -name "*.conf" |& tee conf_files.txt
+```
+**What it does**:  
+- Searches `.conf` files in `/etc`  
+- Captures **both** output and error messages with `|&`
+
+#### ⚫ Stream Processing: Live Monitoring with `tail`
+```bash
+tail -f syslog.log | grep --line-buffered "CRITICAL"
+```
+**What it does**:  
+- Follows a growing log file in real time  
+- Filters lines that contain "CRITICAL"
 
 ---
 
