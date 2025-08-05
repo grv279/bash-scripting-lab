@@ -41,6 +41,9 @@ This guide serves as a quick reference and learning resource for Bash scripting.
     - [Word Splitting](#word-splitting)
     - [ANSI-C Quoting](#ansi-c-quoting)
     - [Pathname Expansion (Globbing)](#pathname-expansion-globbing)
+  - [Here-Document and Here-String](#here-document-and-here-string)
+    - [**Here-Document (`<<`)**](#here-document-)
+    - [**Here-String (`<<<`)**](#here-string-)
   - [📤 Passing Arguments](#-passing-arguments)
   - [🧵 Input Parameter Parsing](#-input-parameter-parsing)
   - [🧮 Arrays](#-arrays)
@@ -59,7 +62,7 @@ This guide serves as a quick reference and learning resource for Bash scripting.
   - [⚙️ Functions](#️-functions)
   - [🚨 Signal Trapping](#-signal-trapping)
   - [🧩 Including Scripts](#-including-scripts)
-  - [�️ Useful Commands](#️-useful-commands)
+  - [🛠️ Useful Commands](#️-useful-commands)
   - [🔗 Pipelines](#-pipelines)
     - [🔑 Key Points](#-key-points)
     - [🔧 Practical Examples of Bash Pipelines](#-practical-examples-of-bash-pipelines)
@@ -722,6 +725,33 @@ echo $'Line1\nLine2'
 Expands wildcards into matching filenames:
 ```bash
 echo *.txt
+```
+
+---
+
+## Here-Document and Here-String
+
+In Bash, **here-document** and **here-string** are ways to pass input directly to commands, making it easier to handle multi-line or single-line data.
+
+### **Here-Document (`<<`)**
+
+A **here-document** is used to provide multi-line input to a command. It allows you to redirect multiple lines of text into a command.
+
+**Example:**
+```bash
+cat << EOF
+line 1
+line 2
+line 3
+EOF
+```
+
+### **Here-String (`<<<`)**
+A **here-string** is a simpler way to pass a single string to a command. It’s used for providing one line of input.
+
+**Example:**
+```bash
+grep "Hello" <<< "Hello, World!" 
 ```
 
 ---
