@@ -12,10 +12,16 @@ This guide serves as a quick reference and learning resource for Bash scripting.
   - [🖇️ Bash shell inbuilt Variables](#️-bash-shell-inbuilt-variables)
     - [Exit Codes in Bash](#exit-codes-in-bash)
   - [🐚 Bash Special Characters](#-bash-special-characters)
+    - [📌 Summary](#-summary)
     - [📄 Basics \& Execution](#-basics--execution)
     - [🧮 Arithmetic \& Substitution](#-arithmetic--substitution)
     - [🗂️ Globbing \& Wildcards](#️-globbing--wildcards)
     - [🧠 Conditional \& Logical](#-conditional--logical)
+    - [🔍 File Tests](#-file-tests)
+    - [📁 File Comparison](#-file-comparison)
+    - [🔤 String Tests](#-string-tests)
+    - [🔢 Numeric Tests](#-numeric-tests)
+    - [🧠 Advanced Tests (Only with `[[`)](#-advanced-tests-only-with-)
     - [🧪 Control Flow: `case` \& Tests](#-control-flow-case--tests)
     - [⛓️ Redirection \& Pipes](#️-redirection--pipes)
     - [🧵 Process \& Background](#-process--background)
@@ -38,6 +44,7 @@ This guide serves as a quick reference and learning resource for Bash scripting.
   - [📤 Passing Arguments](#-passing-arguments)
   - [🧵 Input Parameter Parsing](#-input-parameter-parsing)
   - [🧮 Arrays](#-arrays)
+    - [🗂️ Associative Arrays](#️-associative-arrays)
   - [➕ Operators](#-operators)
     - [Arithmetic](#arithmetic)
   - [✂️ String Operations](#️-string-operations)
@@ -52,8 +59,7 @@ This guide serves as a quick reference and learning resource for Bash scripting.
   - [⚙️ Functions](#️-functions)
   - [🚨 Signal Trapping](#-signal-trapping)
   - [🧩 Including Scripts](#-including-scripts)
-  - [📂 File Tests](#-file-tests)
-  - [🛠️ Useful Commands](#️-useful-commands)
+  - [�️ Useful Commands](#️-useful-commands)
   - [🔗 Pipelines](#-pipelines)
     - [🔑 Key Points](#-key-points)
     - [🔧 Practical Examples of Bash Pipelines](#-practical-examples-of-bash-pipelines)
@@ -126,6 +132,31 @@ exit-code: 99
 
 ## 🐚 Bash Special Characters
 
+### 📌 Summary
+
+| Char(s)        | Description |
+|----------------|-------------|
+| `#`            | **Comment** — Marks the rest of the line as a comment, ignored by the shell. |
+| `\`            | **Escape** — Prevents the next character from being interpreted specially. Ignored in single quotes. |
+| `=`            | **Assignment** — Assigns a value to a variable (e.g. `logdir=/var/log`). No spaces around `=`. |
+| `$`            | **Expansion** — Introduces expansions like `$var`, `$(command)`, or `$((expression))`. |
+| `''`           | **Single quotes** — Preserve literal meaning of enclosed text; no expansions or splitting occur. |
+| `""`           | **Double quotes** — Preserve text from word splitting, but allow expansions inside. |
+| `[[ ... ]]`    | **Test** — Conditional expression evaluation (e.g., string comparison, file existence checks). |
+| `(( ... ))`    | **Arithmetic expression** — Performs math operations and can be used in conditionals or assignments. |
+| `$(( ... ))`   | **Arithmetic expansion** — Replaces the expression with its evaluated result (e.g., `echo $((2+3))`). |
+| `$( ... )`     | **Command Substitution** - insert the output of a command (e.g., `today=$(date)`). |
+| `{ ... }`      | **Inline group** — Brace expansion / Groups commands to be treated as one block. Runs in current shell. |
+| `( ... )`      | **Subshell group** — Groups commands in a subshell, isolating side effects. |
+| `!`            | **Negate** — Reverses the result of a test or command (e.g., `! grep text file`). |
+| `*`, `?`       | **Globs** — Wildcards for matching filenames (`*.txt`, `file?.sh`, etc.). |
+| `~`            | **Home directory** — Represents home directory (`~`, `~/Docs`, `~user/Downloads`). |
+| `;`            | **Command separator** — Allows multiple commands on the same line. |
+| `&`            | **Background** — Executes command in the background (e.g., `sleep 10 &`). |
+| `>`, `>>`, `<` | **Redirection** — Redirects output/input of commands to/from files. |
+| `|`            | **Pipe** — Sends output of one command as input to another (e.g., `echo "hi" \| grep h`). |
+
+
 ### 📄 Basics & Execution
 
 | Char(s)     | Description   |
@@ -144,6 +175,30 @@ echo "Hello" # This is a comment
 : > emptyfile
 : ${x:=42}  # Set default value if unset
 ```
+
+<details>
+<summary>🔽 Click to expand Bash Parameter Expansion Table</summary>
+
+<br>
+
+| Syntax                        | Description                                                                 |
+|------------------------------|-----------------------------------------------------------------------------|
+| `${parameter:-word}`         | Use `word` if `parameter` is unset or null.                                |
+| `${parameter:=word}`         | Assign `word` if `parameter` is unset/null, then return it.                |
+| `${parameter:+word}`         | Use `word` only if `parameter` is set and not null.                        |
+| `${parameter:offset:length}` | Substring starting at `offset` up to `length` chars. Use `()` for negative offset. |
+| `${#parameter}`              | Returns length of `parameter`. For arrays, returns number of elements.     |
+| `${parameter#pattern}`       | Remove shortest match of `pattern` from start. Applies to each array item. |
+| `${parameter##pattern}`      | Remove longest match of `pattern` from start.                              |
+| `${parameter%pattern}`       | Remove shortest match of `pattern` from end.                               |
+| `${parameter%%pattern}`      | Remove longest match of `pattern` from end.                                |
+| `${parameter/pat/str}`       | Replace first match of `pat` with `str`.                                   |
+| `${parameter//pat/str}`      | Replace all matches of `pat` with `str`.                                   |
+| `${parameter/#pat/str}`      | Replace match at start only. Good for adding prefix.                       |
+| `${parameter/%pat/str}`      | Replace match at end only. Good for adding suffix.                         |
+
+</details>
+
 
 | Char(s)     | Description   |
 |-------------|----------------|
@@ -186,10 +241,10 @@ echo \$HOME
 
 | Char(s)     | Description   |
 |-------------|----------------|
-| `` `cmd` `` | Command substitution  |
+| `$(cmd)`    | Command substitution  |
 
 ```bash
-echo "Today is `date`"
+echo "Today is $(date)"
 ```
 
 | Char(s)     | Description   |
@@ -281,12 +336,96 @@ cp /{bin,usr/bin}/ls .
 | `{}`        | Code block / brace expansion |
 
 ```bash
-echo file{1,2}.txt
 { echo "Hello"; echo "World"; } > output.txt
+$ echo th{e,a}n
+then than
+$ echo {/home/*,/root}/.*profile
+/home/axxo/.bash_profile /home/lhunath/.profile /root/.bash_profile /root/.profile
+$ echo {1..9}
+1 2 3 4 5 6 7 8 9
+$ echo {0,1}{0..9}
+00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19
 ```
 
 
 ### 🧠 Conditional & Logical
+
+
+<details>
+<summary>🔽 Click to expand Test Expressions Summary Table</summary>
+
+---
+
+### 🔍 File Tests
+
+| Expression     | Description                                      |
+|----------------|--------------------------------------------------|
+| `-e FILE`      | True if file exists                              |
+| `-f FILE`      | True if file is a regular file                   |
+| `-d FILE`      | True if file is a directory                      |
+| `-h FILE`      | True if file is a symbolic link                  |
+| `-p FILE`      | True if pipe exists                              |
+| `-r FILE`      | True if file is readable by you                  |
+| `-s FILE`      | True if file exists and is not empty             |
+| `-t FD`        | True if FD is opened on a terminal               |
+| `-w FILE`      | True if file is writable by you                  |
+| `-x FILE`      | True if file is executable by you                |
+| `-O FILE`      | True if file is effectively owned by you         |
+| `-G FILE`      | True if file is owned by your group              |
+
+---
+
+### 📁 File Comparison
+
+| Expression         | Description                                          |
+|--------------------|------------------------------------------------------|
+| `FILE1 -nt FILE2`  | True if FILE1 is newer than FILE2                   |
+| `FILE1 -ot FILE2`  | True if FILE1 is older than FILE2                   |
+
+---
+
+### 🔤 String Tests
+
+| Expression              | Description                                              |
+|-------------------------|----------------------------------------------------------|
+| `-z STRING`             | True if the string is empty                              |
+| `-n STRING`             | True if the string is not empty                          |
+| `STRING = STRING`       | True if both strings are identical                       |
+| `STRING != STRING`      | True if the strings are not identical                    |
+| `STRING < STRING`       | True if the first string sorts before the second         |
+| `STRING > STRING`       | True if the first string sorts after the second          |
+| `! EXPR`               | Logical NOT — inverts the result of the expression        |
+
+---
+
+### 🔢 Numeric Tests
+
+| Expression      | Description                                             |
+|-----------------|---------------------------------------------------------|
+| `INT -eq INT`   | True if both integers are equal                         |
+| `INT -ne INT`   | True if integers are not equal                          |
+| `INT -lt INT`   | True if the first integer is less than the second       |
+| `INT -gt INT`   | True if the first integer is greater than the second    |
+| `INT -le INT`   | True if the first is less than or equal to the second   |
+| `INT -ge INT`   | True if the first is greater than or equal to the second|
+
+---
+
+### 🧠 Advanced Tests (Only with `[[`)
+
+| Expression                   | Description                                                                 |
+|------------------------------|-----------------------------------------------------------------------------|
+| `STRING = (or ==) PATTERN`   | Pattern match using glob, not plain string comparison                       |
+| `STRING != PATTERN`          | Pattern mismatch using glob                                                 |
+| `STRING =~ REGEX`            | Regex match                                                                 |
+| `( EXPR )`                   | Group expressions and change precedence                                     |
+| `EXPR && EXPR`               | Logical AND (short-circuits if left is false)                               |
+| `EXPR \|\| EXPR`             | Logical OR (short-circuits if left is true)                                 |
+
+---
+
+</details>
+
 
 | Char(s)     | Description   |
 |-------------|----------------|
@@ -449,6 +588,10 @@ cd -
 
 ```bash
 rm -- -weirdfile
+
+# Note:
+# --: Tells rm that no more options will follow
+# -weirdfile: Treated as a literal filename, not an option
 ```
 
 ## 🔠 String Manipulation
@@ -620,7 +763,58 @@ new_array[2]=apricot
 
 echo ${#my_array[@]}     # Length
 echo ${my_array[3]}      # 4th element
+"${!my_array[@]}"        # expands to a list of the indices of an array, in sequential order.
+
+for file in "${myfiles[@]}"; do
+    cp "$file" /backups/
+done
 ```
+
+### 🗂️ Associative Arrays
+
+Bash supports **associative arrays** (also known as hashmaps or dictionaries), where **keys are strings** instead of just integers.
+
+> 🧠 Associative arrays are supported in **Bash 4.0 and above**.
+
+🔧 Declaring an Associative Array
+
+```bash
+declare -A myArray
+
+myArray["apple"]="red"
+myArray["banana"]="yellow"
+myArray["grape"]="purple"
+
+echo "${myArray["banana"]}"  # Output: yellow
+
+for key in "${!myArray[@]}"; do # loop
+    echo "$key is ${myArray[$key]}"
+done
+
+if [[ -v myArray["banana"] ]]; then # Checking If a Key Exists
+    echo "Key 'banana' exists!"
+fi
+
+unset myArray["banana"]  # Deleting a Key
+```
+
+<details>
+<summary>🔽 Bash Associative Array Operations – Click to Expand</summary>
+
+| Operation       | Syntax                      |
+|----------------|-----------------------------|
+| Declare         | `declare -A myArray`        |
+| Assign          | `myArray["key"]="value"`    |
+| Access          | `${myArray["key"]}`         |
+| Loop keys       | `for k in "${!myArray[@]}"` |
+| Loop values     | `for v in "${myArray[@]}"`  |
+| Key exists      | `[[ -v myArray["key"] ]]`   |
+| Delete entry    | `unset myArray["key"]`      |
+| List all keys   | `"${!myArray[@]}"`          |
+| List all values | `"${myArray[@]}"`           |
+
+</details>
+
 
 ---
 
@@ -791,22 +985,6 @@ source ./lib.sh
 ```
 
 Allows you to reuse code or functions from another script.
-
----
-
-## 📂 File Tests
-
-| Test     | Checks                            |
-|----------|-----------------------------------|
-| `-e`     | File exists                       |
-| `-f`     | Regular file                      |
-| `-d`     | Directory                         |
-| `-r`     | Readable                          |
-| `-w`     | Writable                          |
-| `-x`     | Executable                        |
-| `-nt`    | Newer than another file           |
-| `-ot`    | Older than another file           |
-| `! -e`   | File does **not** exist           |
 
 ---
 
